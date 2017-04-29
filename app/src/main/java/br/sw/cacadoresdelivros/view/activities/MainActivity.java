@@ -5,9 +5,9 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -18,8 +18,10 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.firebase.FirebaseApp;
 
 import br.sw.cacadoresdelivros.R;
+import br.sw.cacadoresdelivros.view.fragments.BookDialog;
 import br.sw.cacadoresdelivros.view.fragments.MapFragment;
 
 public class MainActivity extends FragmentActivity implements
@@ -31,7 +33,7 @@ public class MainActivity extends FragmentActivity implements
     Location mCurrentLocation = null;
     Location mLastLocation = null;
 
-    LatLng mCurrlatLng = null;
+    public LatLng mCurrlatLng = null;
     MapFragment mMapFragment;
 
     @Override
@@ -40,11 +42,18 @@ public class MainActivity extends FragmentActivity implements
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         if(askPermissions()){
+            FirebaseApp.initializeApp(this);
             mMapFragment = MapFragment.newInstance();
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragmentContainer, mMapFragment)
                     .commit();
         }
+    }
+
+    public void showBookDialog(){
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        DialogFragment bookDialog = new BookDialog();
+        bookDialog.show(fragmentManager, "Main");
     }
 
     public void mapReady(){
@@ -117,11 +126,10 @@ public class MainActivity extends FragmentActivity implements
         Log.v("Main", "AskingPermissions");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
             String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.CALL_PHONE};
+                    Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.INTERNET};
             ActivityCompat.requestPermissions(this, permissions, 3030);
             Log.v("Main", "InsideIf");
         }

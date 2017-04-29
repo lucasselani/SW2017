@@ -22,6 +22,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import br.sw.cacadoresdelivros.R;
 import br.sw.cacadoresdelivros.view.activities.MainActivity;
@@ -30,7 +35,7 @@ import br.sw.cacadoresdelivros.view.activities.MainActivity;
  * Created by lucasselani on 28/04/17.
  */
 
-public class MapFragment extends Fragment implements OnMapReadyCallback {
+public class MapFragment extends Fragment implements OnMapReadyCallback, ValueEventListener {
 
     private static final String TAG = MapFragment.class.getSimpleName();
     private MapView mMapView;
@@ -63,7 +68,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                ((MainActivity) getActivity()).showBookDialog();
             }
         });
 
@@ -98,5 +103,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 .target(latlgn).zoom(14).build();
         mGoogleMap.animateCamera(CameraUpdateFactory
                 .newCameraPosition(cameraPosition));
+    }
+
+    @Override
+    public void onDataChange(DataSnapshot dataSnapshot) {
+        String value = dataSnapshot.getValue(String.class);
+        Log.d(TAG, "Value is: " + value);
+
+    }
+
+    @Override
+    public void onCancelled(DatabaseError databaseError) {
+        Log.w(TAG, "Failed to read value.", databaseError.toException());
+
     }
 }
