@@ -4,7 +4,7 @@
     package="br.sw.cacadoresdelivros">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
@@ -15,9 +15,9 @@
         android:roundIcon="@mipmap/swlogo"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
-        <provider android:authorities="com.facebook.app.FacebookContentProvider100233520549753"
+        <provider
             android:name="com.facebook.FacebookContentProvider"
+            android:authorities="com.facebook.app.FacebookContentProvider100233520549753"
             android:exported="true" />
 
         <meta-data
@@ -26,14 +26,12 @@
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
-
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
-            tools:replace="android:value"
-            android:value="@string/facebook_app_id"/>
+            android:value="@string/facebook_app_id"
+            tools:replace="android:value" />
 
-        <activity android:name=".view.activities.MainActivity"/>
-
+        <activity android:name=".view.activities.MainActivity" />
         <activity android:name=".view.activities.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -41,5 +39,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".view.activities.GenreActivity"></activity>
     </application>
+
 </manifest>

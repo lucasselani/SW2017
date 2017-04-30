@@ -84,7 +84,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         } catch (SecurityException se){
             se.printStackTrace();
         }
-        try {
+        /*try {
             boolean success = googleMap.setMapStyle(
                     MapStyleOptions.loadRawResourceStyle(
                             getContext(), R.raw.style_json));
@@ -92,7 +92,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             if (!success) Log.e(TAG, "Style parsing failed.");
         } catch (Resources.NotFoundException e) {
             Log.e(TAG, "Can't find style. Error: ", e);
-        }
+        }*/
         googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
