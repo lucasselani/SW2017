@@ -167,7 +167,7 @@ public class BookDialog extends DialogFragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CAMERA_PIC_REQUEST) {
             if(data == null) return;
-            image = (Bitmap) data.getExtras().get("data");
+            if(data.hasExtra("data")) image = (Bitmap) data.getExtras().get("data");
             imageShared = true;
 
             SharePhotoContent content = new SharePhotoContent.Builder()
@@ -175,7 +175,7 @@ public class BookDialog extends DialogFragment {
                             .setBitmap(image)
                             .build())
                     .setShareHashtag(new ShareHashtag.Builder()
-                            .setHashtag("#CaçadoresDeLivros #DoeUmLivro")
+                            .setHashtag("#CaçadoresDeLivros#DoeUmLivro")
                             .build())
                     .build();
 

@@ -31,8 +31,10 @@
             android:value="@string/facebook_app_id"
             tools:replace="android:value" />
 
-        <activity android:name=".view.activities.MainActivity" />
-        <activity android:name=".view.activities.LoginActivity">
+        <activity android:name=".view.activities.MainActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".view.activities.LoginActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

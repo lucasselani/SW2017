@@ -1,22 +1,30 @@
 package br.sw.cacadoresdelivros.view.activities;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.facebook.login.LoginManager;
@@ -64,10 +72,12 @@ public class MainActivity extends FragmentActivity implements
     public LatLng mCurrlatLng = null;
     public Marker markerToDelete;
     MapFragment mMapFragment;
+    ProgressDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setSplashScreen();
         setContentView(R.layout.activity_maps);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -98,6 +108,23 @@ public class MainActivity extends FragmentActivity implements
         }
     }
 
+    public void setSplashScreen(){
+        dialog = new ProgressDialog(this);
+        dialog.show();
+        dialog.setContentView(R.layout.splashscreen);
+        dialog.setCancelable(false);
+        dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                dialog.dismiss();
+            }
+        },5000);
+
+    }
+
+
+
     public void showBookDialog(){
         FragmentManager fragmentManager = getSupportFragmentManager();
         DialogFragment bookDialog = new BookDialog();
@@ -116,6 +143,9 @@ public class MainActivity extends FragmentActivity implements
         Log.v("Main", "MapReady");
         buildGoogleApiClient();
         mGoogleApiClient.connect();
+        RelativeLayout item = (RelativeLayout)findViewById(R.id.fragmentContainer);
+        View child = getLayoutInflater().inflate(R.layout.splashscreen, null);
+        item.removeView(child);
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -174,6 +204,7 @@ public class MainActivity extends FragmentActivity implements
 
     @Override
     public void onLocationChanged(Location location) {
+        if(location == null) return;
         mCurrlatLng = new LatLng(location.getLatitude(), location.getLongitude());
         GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(location.getLatitude(),
                 location.getLongitude()),
@@ -236,12 +267,9 @@ public class MainActivity extends FragmentActivity implements
 
     public boolean askPermissions() {
         Log.v("Main", "AskingPermissions");
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
-            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.INTERNET};
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
             ActivityCompat.requestPermissions(this, permissions, 3030);
             Log.v("Main", "InsideIf");
         }

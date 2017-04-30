@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
@@ -22,6 +23,7 @@ import com.facebook.share.model.ShareHashtag;
 import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
 import com.facebook.share.widget.ShareDialog;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -32,6 +34,7 @@ import br.sw.cacadoresdelivros.model.Book;
 import br.sw.cacadoresdelivros.view.activities.MainActivity;
 
 import static android.R.attr.key;
+import static android.app.Activity.RESULT_OK;
 
 
 /**
@@ -44,7 +47,7 @@ public class MarkerDialog extends DialogFragment {
     private Bitmap image;
     private boolean imageShared = false;
     private boolean wantToCloseDialog;
-    private static final int CAMERA_PIC_REQUEST = 1337;
+    private static final int CAMERA_PIC_REQUEST = 1;
     private String markerId;
 
     /* The activity that creates an instance of this dialog fragment must
@@ -103,8 +106,23 @@ public class MarkerDialog extends DialogFragment {
                 @Override
                 public void onClick(View v) {
                     wantToCloseDialog = false;
-                    Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-                    startActivityForResult(cameraIntent, CAMERA_PIC_REQUEST);
+
+                    LatLng markerPos = ((MainActivity)getActivity()).markerToDelete.getPosition();
+                    Location loc1 = new Location("");
+                    loc1.setLatitude(((MainActivity)getActivity()).mCurrlatLng.latitude);
+                    loc1.setLongitude(((MainActivity)getActivity()).mCurrlatLng.longitude);
+                    Location loc2 = new Location("");
+                    loc2.setLatitude(markerPos.latitude);
+                    loc2.setLongitude(markerPos.longitude);
+                    float distanceInMeters = loc1.distanceTo(loc2);
+                    if(distanceInMeters < 100){
+                        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                        startActivityForResult(cameraIntent, CAMERA_PIC_REQUEST);
+                    } else{
+                        Toast.makeText(getActivity().getApplicationContext(),
+                                "É preciso estar próximo ao livro para pegá-lo!",
+                                Toast.LENGTH_LONG).show();
+                    }
                 }
             });
         }
@@ -122,9 +140,9 @@ public class MarkerDialog extends DialogFragment {
     };
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == CAMERA_PIC_REQUEST) {
+        if (requestCode == CAMERA_PIC_REQUEST && resultCode == RESULT_OK) {
             if(data == null) return;
-            image = (Bitmap) data.getExtras().get("data");
+            if(data.hasExtra("data")) image = (Bitmap) data.getExtras().get("data");
             imageShared = true;
             wantToCloseDialog = true;
 
@@ -134,7 +152,7 @@ public class MarkerDialog extends DialogFragment {
                             .setBitmap(image)
                             .build())
                     .setShareHashtag(new ShareHashtag.Builder()
-                            .setHashtag("#CaçadoresDeLivros #GanheUmLivro")
+                            .setHashtag("#CaçadoresDeLivros#GanheUmLivro")
                             .build())
                     .build();
 
