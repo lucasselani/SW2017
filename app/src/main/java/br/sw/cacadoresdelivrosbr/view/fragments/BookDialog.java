@@ -128,6 +128,18 @@ public class BookDialog extends DialogFragment {
                         double lat = loc.latitude;
                         double log = loc.longitude;
 
+                        SharePhotoContent content = new SharePhotoContent.Builder()
+                                .addPhoto(new SharePhoto.Builder()
+                                        .setBitmap(image)
+                                        .build())
+                                .setShareHashtag(new ShareHashtag.Builder()
+                                        .setHashtag("#CaçadoresDeLivros#DoeUmLivro")
+                                        .build())
+                                .build();
+
+                        ShareDialog shareDialog = new ShareDialog(getActivity());
+                        shareDialog.show(content);
+
                         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("location");
                         GeoFire geoFire = new GeoFire(ref);
                         geoFire.setLocation(bookId, new GeoLocation(lat, log));
@@ -170,17 +182,6 @@ public class BookDialog extends DialogFragment {
             if(data.hasExtra("data")) image = (Bitmap) data.getExtras().get("data");
             imageShared = true;
 
-            SharePhotoContent content = new SharePhotoContent.Builder()
-                    .addPhoto(new SharePhoto.Builder()
-                            .setBitmap(image)
-                            .build())
-                    .setShareHashtag(new ShareHashtag.Builder()
-                            .setHashtag("#CaçadoresDeLivros#DoeUmLivro")
-                            .build())
-                    .build();
-
-            ShareDialog shareDialog = new ShareDialog(this);
-            shareDialog.show(content);
         }
     }
 }
