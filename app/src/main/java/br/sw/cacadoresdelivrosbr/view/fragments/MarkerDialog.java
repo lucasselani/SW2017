@@ -1,11 +1,10 @@
-package br.sw.cacadoresdelivros.view.fragments;
+package br.sw.cacadoresdelivrosbr.view.fragments;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -14,7 +13,6 @@ import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,16 +22,14 @@ import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
 import com.facebook.share.widget.ShareDialog;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 
-import br.sw.cacadoresdelivros.R;
-import br.sw.cacadoresdelivros.model.Book;
-import br.sw.cacadoresdelivros.view.activities.MainActivity;
+import br.sw.cacadoresdelivrosbr.R;
+import br.sw.cacadoresdelivrosbr.model.Book;
+import br.sw.cacadoresdelivrosbr.view.activities.MainActivity;
 
-import static android.R.attr.key;
 import static android.app.Activity.RESULT_OK;
 
 

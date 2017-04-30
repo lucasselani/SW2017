@@ -1,6 +1,4 @@
-package br.sw.cacadoresdelivros.model;
-
-import com.firebase.geofire.GeoLocation;
+package br.sw.cacadoresdelivrosbr.model;
 
 /**
  * Created by lucasselani on 29/04/17.

@@ -1,4 +1,4 @@
-package br.sw.cacadoresdelivros.view.activities;
+package br.sw.cacadoresdelivrosbr.view.activities;
 
 import android.Manifest;
 import android.app.ProgressDialog;
@@ -6,11 +6,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
@@ -18,12 +15,9 @@ import android.support.v4.app.FragmentManager;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -51,11 +45,11 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
-import br.sw.cacadoresdelivros.R;
-import br.sw.cacadoresdelivros.model.Book;
-import br.sw.cacadoresdelivros.view.fragments.BookDialog;
-import br.sw.cacadoresdelivros.view.fragments.MapFragment;
-import br.sw.cacadoresdelivros.view.fragments.MarkerDialog;
+import br.sw.cacadoresdelivrosbr.R;
+import br.sw.cacadoresdelivrosbr.model.Book;
+import br.sw.cacadoresdelivrosbr.view.fragments.BookDialog;
+import br.sw.cacadoresdelivrosbr.view.fragments.MapFragment;
+import br.sw.cacadoresdelivrosbr.view.fragments.MarkerDialog;
 
 public class MainActivity extends FragmentActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
@@ -81,31 +75,31 @@ public class MainActivity extends FragmentActivity implements
         setContentView(R.layout.activity_maps);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        if(askPermissions()){
-            FirebaseApp.initializeApp(this);
-            DatabaseReference ref = FirebaseDatabase.getInstance().getReference("location");
-            bookList = new ArrayList<>();
-            refBooks = FirebaseDatabase.getInstance().getReference("books");
-            refBooks.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    for(DataSnapshot postSnapshot : dataSnapshot.getChildren()){
-                        bookList.add(postSnapshot.getValue(Book.class));
-                    }
+        askPermissions();
+        FirebaseApp.initializeApp(this);
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("location");
+        bookList = new ArrayList<>();
+        refBooks = FirebaseDatabase.getInstance().getReference("books");
+        refBooks.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot postSnapshot : dataSnapshot.getChildren()){
+                    bookList.add(postSnapshot.getValue(Book.class));
                 }
+            }
 
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    Log.v("Database Error", databaseError.toString());
-                }
-            });
-            geoFire = new GeoFire(ref);
-            markerList = new ArrayList<>();
-            mMapFragment = MapFragment.newInstance();
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragmentContainer, mMapFragment)
-                    .commit();
-        }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.v("Database Error", databaseError.toString());
+            }
+        });
+        geoFire = new GeoFire(ref);
+        markerList = new ArrayList<>();
+        mMapFragment = MapFragment.newInstance();
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragmentContainer, mMapFragment)
+                .commit();
+
     }
 
     public void setSplashScreen(){
@@ -265,16 +259,16 @@ public class MainActivity extends FragmentActivity implements
         }
     }
 
-    public boolean askPermissions() {
+    public void askPermissions() {
         Log.v("Main", "AskingPermissions");
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE};
             ActivityCompat.requestPermissions(this, permissions, 3030);
             Log.v("Main", "InsideIf");
         }
-        else return true;
-        return false;
     }
 
 

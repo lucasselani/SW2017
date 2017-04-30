@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@mipmap/login_screen2"
     android:screenOrientation="portrait"
-    tools:context="br.sw.cacadoresdelivros.view.activities.LoginActivity">
+    tools:context="br.sw.cacadoresdelivrosbr.view.activities.LoginActivity">
 
     <com.facebook.login.widget.LoginButton
         android:layout_width="300dp"

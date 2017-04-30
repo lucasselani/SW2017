@@ -1,4 +1,4 @@
-package br.sw.cacadoresdelivros.view.fragments;
+package br.sw.cacadoresdelivrosbr.view.fragments;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -30,9 +30,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.io.ByteArrayOutputStream;
 import java.util.UUID;
 
-import br.sw.cacadoresdelivros.R;
-import br.sw.cacadoresdelivros.model.Book;
-import br.sw.cacadoresdelivros.view.activities.MainActivity;
+import br.sw.cacadoresdelivrosbr.R;
+import br.sw.cacadoresdelivrosbr.model.Book;
+import br.sw.cacadoresdelivrosbr.view.activities.MainActivity;
 
 /**
  * Created by lucasselani on 29/04/17.

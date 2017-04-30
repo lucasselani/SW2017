@@ -1,4 +1,4 @@
-package br.sw.cacadoresdelivros.view.activities;
+package br.sw.cacadoresdelivrosbr.view.activities;
 
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -9,8 +9,8 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.widget.TextView;
 
-import br.sw.cacadoresdelivros.R;
-import br.sw.cacadoresdelivros.controller.RecyclerViewAdapter;
+import br.sw.cacadoresdelivrosbr.R;
+import br.sw.cacadoresdelivrosbr.controller.RecyclerViewAdapter;
 
 public class GenreActivity extends AppCompatActivity {
 

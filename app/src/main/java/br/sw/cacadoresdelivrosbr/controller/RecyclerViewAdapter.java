@@ -1,4 +1,4 @@
-package br.sw.cacadoresdelivros.controller;
+package br.sw.cacadoresdelivrosbr.controller;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -12,7 +12,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.sw.cacadoresdelivros.R;
+import br.sw.cacadoresdelivrosbr.R;
 
 /**
  * Created by lucasselani on 30/04/17.

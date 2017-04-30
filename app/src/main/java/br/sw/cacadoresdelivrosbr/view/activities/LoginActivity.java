@@ -1,6 +1,7 @@
-package br.sw.cacadoresdelivros.view.activities;
+package br.sw.cacadoresdelivrosbr.view.activities;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -8,7 +9,7 @@ import android.content.pm.Signature;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v4.content.ContextCompat;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
@@ -18,8 +19,6 @@ import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
-import com.facebook.FacebookSdk;
-import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -33,13 +32,13 @@ import com.google.firebase.auth.FirebaseUser;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import br.sw.cacadoresdelivros.R;
-import br.sw.cacadoresdelivros.view.fragments.MapFragment;
+import br.sw.cacadoresdelivrosbr.R;
 
 public class LoginActivity extends FragmentActivity {
     private static String TAG = "LoginActivity";
     private CallbackManager mCallbackManager;
     private FirebaseAuth mAuth;
+    private LoginButton loginButton;
 
 
     @Override
@@ -50,7 +49,9 @@ public class LoginActivity extends FragmentActivity {
         mAuth = FirebaseAuth.getInstance();
         mCallbackManager = CallbackManager.Factory.create();
 
-        LoginButton loginButton = (LoginButton) findViewById(R.id.button_facebook_login);
+        askPermissions();
+
+        loginButton = (LoginButton) findViewById(R.id.button_facebook_login);
         loginButton.setReadPermissions("email", "public_profile");
         loginButton.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>(){
 
@@ -71,6 +72,24 @@ public class LoginActivity extends FragmentActivity {
             }
         });
     }
+
+    private void printHashKey(){
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(
+                    "br.sw.cacadoresdelivrosbr",
+                    PackageManager.GET_SIGNATURES);
+            for (Signature signature : info.signatures) {
+                MessageDigest md = MessageDigest.getInstance("SHA");
+                md.update(signature.toByteArray());
+                Log.d("KeyHash:", Base64.encodeToString(md.digest(), Base64.DEFAULT));
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+
+        } catch (NoSuchAlgorithmException e) {
+
+        }
+    }
+
 
     private void handleFacebookAccessToken(AccessToken token) {
         Log.d(TAG, "handleFacebookAccessToken:" + token);
@@ -104,6 +123,49 @@ public class LoginActivity extends FragmentActivity {
             i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(i);
         }
+    }
+
+    public boolean askPermissions() {
+        Log.v("Main", "AskingPermissions");
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            String[] permissions = {Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
+            ActivityCompat.requestPermissions(this, permissions, 3030);
+            Log.v("Main", "InsideIf");
+        }
+        else return true;
+        return false;
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        int permissionsNotGiven = 0;
+        for(int i=0; i<grantResults.length; i++){
+            if(grantResults[i] == -1) permissionsNotGiven++;
+        }
+
+        if(permissionsNotGiven == 0){
+            loginButton.setClickable(true);
+        }
+        else{
+            loginButton.setClickable(false);
+            String[] missedPermissions = new String[permissionsNotGiven];
+            int cont = 0;
+            for(int i=0; i<grantResults.length; i++){
+                if(grantResults[i] == -1){
+                    missedPermissions[cont] = permissions[i];
+                    cont++;
+                }
+            }
+            ActivityCompat.requestPermissions(this, missedPermissions, 1010);
+        }
+
     }
 
     @Override
