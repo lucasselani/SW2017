@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
@@ -35,7 +36,7 @@ import java.security.NoSuchAlgorithmException;
 import br.sw.cacadoresdelivros.R;
 import br.sw.cacadoresdelivros.view.fragments.MapFragment;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends FragmentActivity {
     private static String TAG = "LoginActivity";
     private CallbackManager mCallbackManager;
     private FirebaseAuth mAuth;

@@ -1,28 +1,53 @@
 package br.sw.cacadoresdelivros.view.activities;
 
 import android.Manifest;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.facebook.login.LoginManager;
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
+import com.firebase.geofire.GeoQuery;
+import com.firebase.geofire.GeoQueryEventListener;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
 
 import br.sw.cacadoresdelivros.R;
+import br.sw.cacadoresdelivros.model.Book;
 import br.sw.cacadoresdelivros.view.fragments.BookDialog;
 import br.sw.cacadoresdelivros.view.fragments.MapFragment;
+import br.sw.cacadoresdelivros.view.fragments.MarkerDialog;
 
 public class MainActivity extends FragmentActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
@@ -32,17 +57,40 @@ public class MainActivity extends FragmentActivity implements
     GoogleApiClient mGoogleApiClient = null;
     Location mCurrentLocation = null;
     Location mLastLocation = null;
-
+    private GeoFire geoFire;
+    public ArrayList<Marker> markerList;
+    public ArrayList<Book> bookList;
+    private DatabaseReference refBooks;
     public LatLng mCurrlatLng = null;
+    public Marker markerToDelete;
     MapFragment mMapFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         if(askPermissions()){
             FirebaseApp.initializeApp(this);
+            DatabaseReference ref = FirebaseDatabase.getInstance().getReference("location");
+            bookList = new ArrayList<>();
+            refBooks = FirebaseDatabase.getInstance().getReference("books");
+            refBooks.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    for(DataSnapshot postSnapshot : dataSnapshot.getChildren()){
+                        bookList.add(postSnapshot.getValue(Book.class));
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.v("Database Error", databaseError.toString());
+                }
+            });
+            geoFire = new GeoFire(ref);
+            markerList = new ArrayList<>();
             mMapFragment = MapFragment.newInstance();
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragmentContainer, mMapFragment)
@@ -54,6 +102,14 @@ public class MainActivity extends FragmentActivity implements
         FragmentManager fragmentManager = getSupportFragmentManager();
         DialogFragment bookDialog = new BookDialog();
         bookDialog.show(fragmentManager, "Main");
+    }
+
+    public void showMarkerDialog(Marker marker){
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        DialogFragment markerDialog = new MarkerDialog();
+        markerToDelete = marker;
+        markerToDelete.hideInfoWindow();
+        markerDialog.show(fragmentManager, "Main");
     }
 
     public void mapReady(){
@@ -119,7 +175,63 @@ public class MainActivity extends FragmentActivity implements
     @Override
     public void onLocationChanged(Location location) {
         mCurrlatLng = new LatLng(location.getLatitude(), location.getLongitude());
+        GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(location.getLatitude(),
+                location.getLongitude()),
+                0.6);
+        geoQuery.addGeoQueryEventListener(geoQueryEventListener);
         Log.v(DEBUG_TAG, mCurrlatLng.toString());
+    }
+
+    public GeoQueryEventListener geoQueryEventListener = new GeoQueryEventListener(){
+        @Override
+        public void onKeyEntered(String key, GeoLocation location) {
+            boolean repeated = false;
+            for(Marker m : markerList){
+                if(m.getTitle().equals(key)){
+                    repeated = true;
+                }
+            }
+            if(!repeated){
+                MarkerOptions markerOptions = new MarkerOptions();
+                markerOptions.position(new LatLng(location.latitude, location.longitude));
+                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                markerOptions.title(key);
+                mMapFragment.markBook(markerOptions);
+            }
+        }
+
+        @Override
+        public void onKeyExited(String key) {
+            String bookKey = refBooks.child(key).toString();
+            for(Marker marker : markerList){
+                if(marker.getTitle().equals(bookKey)){
+                    markerToDelete = marker;
+                    deleteMarker();
+                }
+            }
+        }
+
+        @Override
+        public void onKeyMoved(String key, GeoLocation location) {
+
+        }
+
+        @Override
+        public void onGeoQueryReady() {
+
+        }
+
+        @Override
+        public void onGeoQueryError(DatabaseError error) {
+
+        }
+    };
+
+    public void deleteMarker(){
+        if(markerToDelete != null){
+            markerToDelete.remove();
+            markerList.remove(markerToDelete);
+        }
     }
 
     public boolean askPermissions() {
@@ -169,5 +281,28 @@ public class MainActivity extends FragmentActivity implements
             ActivityCompat.requestPermissions(this, missedPermissions, 1010);
         }
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setTitle("Sair")
+                .setMessage("Deseja sair da aplicação?")
+                .setPositiveButton("Sair", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        FirebaseAuth.getInstance().signOut();
+                        LoginManager.getInstance().logOut();
+                        Intent i = new Intent(getApplication(), LoginActivity.class);
+                        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(i);
+                    }
+                })
+                .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                }).create().show();
     }
 }

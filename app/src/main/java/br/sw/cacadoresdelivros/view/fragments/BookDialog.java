@@ -43,7 +43,7 @@ public class BookDialog extends DialogFragment {
     private Button mPictureButton;
     private Bitmap image;
     private boolean imageShared = false;
-    static final int CAMERA_PIC_REQUEST = 1337;
+    private static final int CAMERA_PIC_REQUEST = 1337;
 
     /* The activity that creates an instance of this dialog fragment must
      * implement this interface in order to receive event callbacks.
@@ -82,6 +82,7 @@ public class BookDialog extends DialogFragment {
                 dismiss();
             }
         });
+        builder.setTitle("Doe um livro");
 
         // Create the AlertDialog object and return it
         return builder.create();
@@ -165,6 +166,7 @@ public class BookDialog extends DialogFragment {
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CAMERA_PIC_REQUEST) {
+            if(data == null) return;
             image = (Bitmap) data.getExtras().get("data");
             imageShared = true;
 
@@ -173,7 +175,7 @@ public class BookDialog extends DialogFragment {
                             .setBitmap(image)
                             .build())
                     .setShareHashtag(new ShareHashtag.Builder()
-                            .setHashtag("#CaçadoresDeLivros")
+                            .setHashtag("#CaçadoresDeLivros #DoeUmLivro")
                             .build())
                     .build();
 

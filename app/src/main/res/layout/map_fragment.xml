@@ -19,7 +19,7 @@
         android:layout_marginBottom="@dimen/fab_margin"
         android:layout_marginRight="@dimen/fab_margin"
         android:layout_marginEnd="@dimen/fab_margin"
-        android:src="@android:drawable/ic_menu_search"
+        android:src="@drawable/ic_local_library_black_24dp"
         android:elevation="4dp"/>
 
 </RelativeLayout>

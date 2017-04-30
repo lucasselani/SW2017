@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -35,7 +36,7 @@ import br.sw.cacadoresdelivros.view.activities.MainActivity;
  * Created by lucasselani on 28/04/17.
  */
 
-public class MapFragment extends Fragment implements OnMapReadyCallback, ValueEventListener {
+public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private static final String TAG = MapFragment.class.getSimpleName();
     private MapView mMapView;
@@ -92,7 +93,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, ValueEv
         } catch (Resources.NotFoundException e) {
             Log.e(TAG, "Can't find style. Error: ", e);
         }
-
+        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                Log.v("MapFragment", "OnMarkerClick");
+                ((MainActivity)getActivity()).showMarkerDialog(marker);
+                return false;
+            }
+        });
         mGoogleMap = googleMap;
         Log.v(TAG,"MapReady");
         ((MainActivity) getActivity()).mapReady();
@@ -105,16 +113,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, ValueEv
                 .newCameraPosition(cameraPosition));
     }
 
-    @Override
-    public void onDataChange(DataSnapshot dataSnapshot) {
-        String value = dataSnapshot.getValue(String.class);
-        Log.d(TAG, "Value is: " + value);
-
-    }
-
-    @Override
-    public void onCancelled(DatabaseError databaseError) {
-        Log.w(TAG, "Failed to read value.", databaseError.toException());
-
+    public void markBook(MarkerOptions markerOptions){
+        ((MainActivity)getActivity()).markerList.add(mGoogleMap.addMarker(markerOptions));
     }
 }
