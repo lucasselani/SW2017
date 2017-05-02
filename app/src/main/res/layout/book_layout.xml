@@ -5,19 +5,23 @@
     android:padding="15dp"
     android:screenOrientation="portrait">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Nome do livro"/>
-
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="A menina que roubava livros"
+        android:hint="Nome do livro"
         android:textColorHint="@android:color/darker_gray"
         android:id="@+id/bookname"
         android:inputType="text"
         android:maxLength="32"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Descrição do livro"
+        android:textColorHint="@android:color/darker_gray"
+        android:id="@+id/bookdesc"
+        android:inputType="text"
+        android:maxLength="256"/>
 
     <Button
         android:layout_gravity="center"

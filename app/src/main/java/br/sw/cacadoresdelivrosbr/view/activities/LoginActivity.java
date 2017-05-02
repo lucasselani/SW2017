@@ -50,6 +50,7 @@ public class LoginActivity extends FragmentActivity {
         mCallbackManager = CallbackManager.Factory.create();
 
         askPermissions();
+        printHashKey();
 
         loginButton = (LoginButton) findViewById(R.id.button_facebook_login);
         loginButton.setReadPermissions("email", "public_profile");

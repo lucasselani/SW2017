@@ -84,7 +84,8 @@ public class MainActivity extends FragmentActivity implements
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for(DataSnapshot postSnapshot : dataSnapshot.getChildren()){
-                    bookList.add(postSnapshot.getValue(Book.class));
+                    Book book = postSnapshot.getValue(Book.class);
+                    if(book.bookId != null) bookList.add(postSnapshot.getValue(Book.class));
                 }
             }
 

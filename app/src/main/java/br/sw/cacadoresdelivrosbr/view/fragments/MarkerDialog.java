@@ -6,7 +6,10 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.util.Base64;
@@ -20,11 +23,16 @@ import android.widget.Toast;
 import com.facebook.share.model.ShareHashtag;
 import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
+import com.facebook.share.widget.ShareButton;
 import com.facebook.share.widget.ShareDialog;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 
 import br.sw.cacadoresdelivrosbr.R;
 import br.sw.cacadoresdelivrosbr.model.Book;
@@ -41,6 +49,7 @@ public class MarkerDialog extends DialogFragment {
     private TextView mBookName, mBookDescription;
     private ImageView mBookPicture;
     private Bitmap image;
+    private File mOutput;
     private boolean imageShared = false;
     private boolean wantToCloseDialog;
     private static final int CAMERA_PIC_REQUEST = 1;
@@ -69,11 +78,13 @@ public class MarkerDialog extends DialogFragment {
         mBookDescription = (TextView) modifyView.findViewById(R.id.bookdesc);
 
         markerId = ((MainActivity)getActivity()).markerToDelete.getTitle();
-        for(Book b : ((MainActivity)getActivity()).bookList){
+        ArrayList<Book> books = ((MainActivity)getActivity()).bookList;
+        for(Book b : books){
             if(b.bookId.equals(markerId)){
                 mBookName.setText(b.bookName);
                 mBookPicture.setImageBitmap(getBitmapFromString(b.bookImage));
-                mBookDescription.setText("Sem descrição.");
+                mBookDescription.setText(b.bookDesc);
+                break;
             }
         }
 
@@ -113,6 +124,9 @@ public class MarkerDialog extends DialogFragment {
                     float distanceInMeters = loc1.distanceTo(loc2);
                     if(distanceInMeters < 100){
                         Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                        File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+                        mOutput = new File(dir, "temp_sharing.jpeg");
+                        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(mOutput));
                         startActivityForResult(cameraIntent, CAMERA_PIC_REQUEST);
                     } else{
                         Toast.makeText(getActivity().getApplicationContext(),
@@ -137,8 +151,14 @@ public class MarkerDialog extends DialogFragment {
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CAMERA_PIC_REQUEST && resultCode == RESULT_OK) {
-            if(data == null) return;
-            if(data.hasExtra("data")) image = (Bitmap) data.getExtras().get("data");
+            try {
+                image = MediaStore.Images.Media.getBitmap(
+                        getActivity().getContentResolver(), Uri.fromFile(mOutput));
+            } catch (IOException e) {
+                imageShared = false;
+                e.printStackTrace();
+                return;
+            }
             imageShared = true;
             wantToCloseDialog = true;
 
@@ -164,8 +184,7 @@ public class MarkerDialog extends DialogFragment {
         * This Function converts the String back to Bitmap
         * */
         byte[] decodedString = Base64.decode(jsonString, Base64.DEFAULT);
-        Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-        return decodedByte;
+        return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
     }
 
 }
