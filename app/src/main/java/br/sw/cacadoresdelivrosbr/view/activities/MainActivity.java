@@ -66,12 +66,12 @@ public class MainActivity extends FragmentActivity implements
     public LatLng mCurrlatLng = null;
     public Marker markerToDelete;
     MapFragment mMapFragment;
-    ProgressDialog dialog;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setSplashScreen();
+
         setContentView(R.layout.activity_maps);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -103,20 +103,7 @@ public class MainActivity extends FragmentActivity implements
 
     }
 
-    public void setSplashScreen(){
-        dialog = new ProgressDialog(this);
-        dialog.show();
-        dialog.setContentView(R.layout.splashscreen);
-        dialog.setCancelable(false);
-        dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                dialog.dismiss();
-            }
-        },5000);
 
-    }
 
 
 
@@ -138,9 +125,6 @@ public class MainActivity extends FragmentActivity implements
         Log.v("Main", "MapReady");
         buildGoogleApiClient();
         mGoogleApiClient.connect();
-        RelativeLayout item = (RelativeLayout)findViewById(R.id.fragmentContainer);
-        View child = getLayoutInflater().inflate(R.layout.splashscreen, null);
-        item.removeView(child);
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -203,7 +187,7 @@ public class MainActivity extends FragmentActivity implements
         mCurrlatLng = new LatLng(location.getLatitude(), location.getLongitude());
         GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(location.getLatitude(),
                 location.getLongitude()),
-                0.6);
+                10);
         geoQuery.addGeoQueryEventListener(geoQueryEventListener);
         Log.v(DEBUG_TAG, mCurrlatLng.toString());
     }

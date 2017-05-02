@@ -23,13 +23,5 @@
         android:inputType="text"
         android:maxLength="256"/>
 
-    <Button
-        android:layout_gravity="center"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:id="@+id/picturebutton"
-        android:text="Foto"/>
-
-
 
 </LinearLayout>

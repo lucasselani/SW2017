@@ -1,11 +1,13 @@
 package br.sw.cacadoresdelivrosbr.view.activities;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -13,6 +15,7 @@ import android.support.v4.content.ContextCompat;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
@@ -39,12 +42,14 @@ public class LoginActivity extends FragmentActivity {
     private CallbackManager mCallbackManager;
     private FirebaseAuth mAuth;
     private LoginButton loginButton;
+    ProgressDialog dialog;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        setSplashScreen();
 
         mAuth = FirebaseAuth.getInstance();
         mCallbackManager = CallbackManager.Factory.create();
@@ -72,6 +77,21 @@ public class LoginActivity extends FragmentActivity {
                 Log.e("FBAuthError", error.toString());
             }
         });
+    }
+
+    public void setSplashScreen(){
+        dialog = new ProgressDialog(this);
+        dialog.show();
+        dialog.setContentView(R.layout.splashscreen);
+        dialog.setCancelable(false);
+        dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                dialog.dismiss();
+            }
+        },5000);
+
     }
 
     private void printHashKey(){

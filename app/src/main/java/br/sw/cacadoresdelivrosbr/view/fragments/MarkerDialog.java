@@ -25,6 +25,8 @@ import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
 import com.facebook.share.widget.ShareButton;
 import com.facebook.share.widget.ShareDialog;
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -50,10 +52,10 @@ public class MarkerDialog extends DialogFragment {
     private ImageView mBookPicture;
     private Bitmap image;
     private File mOutput;
-    private boolean imageShared = false;
     private boolean wantToCloseDialog;
     private static final int CAMERA_PIC_REQUEST = 1;
     private String markerId;
+    private ShareDialog shareDialog;
 
     /* The activity that creates an instance of this dialog fragment must
      * implement this interface in order to receive event callbacks.
@@ -108,6 +110,7 @@ public class MarkerDialog extends DialogFragment {
         super.onStart();
         AlertDialog alertDialog = (AlertDialog) getDialog();
         if(alertDialog != null){
+            shareDialog = new ShareDialog(getActivity());
             Button positiveButton = alertDialog.getButton(Dialog.BUTTON_POSITIVE);
             positiveButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -138,44 +141,42 @@ public class MarkerDialog extends DialogFragment {
         }
     }
 
-    Runnable r = new Runnable() {
-        @Override
-        public void run() {
-            DatabaseReference refBooks = FirebaseDatabase.getInstance().getReference("books");
-            refBooks.child(markerId).removeValue();
-            DatabaseReference refLocations = FirebaseDatabase.getInstance().getReference("location");
-            refLocations.child(markerId).removeValue();
-            ((MainActivity)getActivity()).deleteMarker();
-        }
-    };
-
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CAMERA_PIC_REQUEST && resultCode == RESULT_OK) {
             try {
                 image = MediaStore.Images.Media.getBitmap(
                         getActivity().getContentResolver(), Uri.fromFile(mOutput));
             } catch (IOException e) {
-                imageShared = false;
                 e.printStackTrace();
                 return;
             }
-            imageShared = true;
             wantToCloseDialog = true;
 
-            r.run();
+            new Thread(new ShareOnFacebook()).start();
+
+            dismiss();
+        }
+    }
+
+    public class ShareOnFacebook implements Runnable{
+        @Override
+        public void run() {
             SharePhotoContent content = new SharePhotoContent.Builder()
                     .addPhoto(new SharePhoto.Builder()
                             .setBitmap(image)
                             .build())
                     .setShareHashtag(new ShareHashtag.Builder()
-                            .setHashtag("#CaçadoresDeLivros#GanheUmLivro")
+                            .setHashtag("#CaçadoresDeLivros")
                             .build())
                     .build();
 
-            ShareDialog shareDialog = new ShareDialog(this);
             shareDialog.show(content);
 
-            dismiss();
+            DatabaseReference refBooks = FirebaseDatabase.getInstance().getReference("books");
+            refBooks.child(markerId).removeValue();
+            DatabaseReference refLocations = FirebaseDatabase.getInstance().getReference("location");
+            refLocations.child(markerId).removeValue();
+            ((MainActivity)getActivity()).deleteMarker();
         }
     }
 

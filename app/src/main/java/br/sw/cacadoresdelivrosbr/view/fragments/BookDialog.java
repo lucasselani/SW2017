@@ -1,11 +1,13 @@
 package br.sw.cacadoresdelivrosbr.view.fragments;
 
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -46,11 +48,11 @@ import br.sw.cacadoresdelivrosbr.view.activities.MainActivity;
 
 public class BookDialog extends DialogFragment {
     private EditText mBookName, mBookDesc;
-    private Button mPictureButton;
     private Bitmap image;
     private File mOutput=null;
-    private boolean imageShared = false;
     private static final int CAMERA_PIC_REQUEST = 1337;
+    private LatLng loc;
+    private ShareDialog shareDialog;
 
     /* The activity that creates an instance of this dialog fragment must
      * implement this interface in order to receive event callbacks.
@@ -72,17 +74,6 @@ public class BookDialog extends DialogFragment {
 
         mBookDesc = (EditText) modifyView.findViewById(R.id.bookdesc);
         mBookName = (EditText) modifyView.findViewById(R.id.bookname);
-        mPictureButton = (Button) modifyView.findViewById(R.id.picturebutton);
-        mPictureButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-                File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-                mOutput = new File(dir, "temp_sharing.jpeg");
-                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(mOutput));
-                startActivityForResult(cameraIntent, CAMERA_PIC_REQUEST);
-            }
-        });
 
         builder.setPositiveButton("COMPARTILHAR", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) { }
@@ -104,14 +95,13 @@ public class BookDialog extends DialogFragment {
         super.onStart();
         AlertDialog alertDialog = (AlertDialog) getDialog();
         if(alertDialog != null){
+            if(isAdded()) shareDialog = new ShareDialog(getActivity());
             Button positiveButton = alertDialog.getButton(Dialog.BUTTON_POSITIVE);
             positiveButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Boolean wantToCloseDialog = true;
-                    String name = "";
-                    String desc = "";
-                    LatLng loc = ((MainActivity)getActivity()).mCurrlatLng;
+                    loc = ((MainActivity)getActivity()).mCurrlatLng;
 
 
                     if(mBookName.getText().toString().equals("")){
@@ -124,12 +114,6 @@ public class BookDialog extends DialogFragment {
                         mBookDesc.setHintTextColor(Color.RED);
                         wantToCloseDialog = false;
                     }
-                    if(!imageShared) {
-                        Toast.makeText(getActivity().getApplicationContext(),
-                                "Adicione uma foto do livro!",
-                                Toast.LENGTH_LONG).show();
-                        wantToCloseDialog = false;
-                    }
                     if(loc == null){
                         Toast.makeText(getActivity().getApplicationContext(),
                                 "Não foi possível conseguir a sua localização!",
@@ -138,45 +122,12 @@ public class BookDialog extends DialogFragment {
                     }
 
                     if (wantToCloseDialog) {
-                        mBookName.setHintTextColor(Color.GRAY);
-                        mBookDesc.setHintTextColor(Color.GRAY);
-                        name = mBookName.getText().toString();
-                        desc = mBookDesc.getText().toString();
-                        String bookId = generateRandomId();
+                        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                        File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+                        mOutput = new File(dir, "temp_sharing.jpeg");
+                        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(mOutput));
+                        startActivityForResult(cameraIntent, CAMERA_PIC_REQUEST);
 
-                        try {
-                            image = MediaStore.Images.Media.getBitmap(
-                                    getActivity().getContentResolver(), Uri.fromFile(mOutput));
-                        } catch (IOException e) {
-                            imageShared = false;
-                            e.printStackTrace();
-                            return;
-                        }
-                        String imageString = getStringFromBitmap(image);
-
-                        double lat = loc.latitude;
-                        double log = loc.longitude;
-
-                        SharePhotoContent content = new SharePhotoContent.Builder()
-                                .addPhoto(new SharePhoto.Builder()
-                                        .setBitmap(image)
-                                        .build())
-                                .setShareHashtag(new ShareHashtag.Builder()
-                                        .setHashtag("#CaçadoresDeLivros#DoeUmLivro")
-                                        .build())
-                                .build();
-
-                        ShareDialog shareDialog = new ShareDialog(getActivity());
-                        shareDialog.show(content);
-
-                        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("location");
-                        GeoFire geoFire = new GeoFire(ref);
-                        geoFire.setLocation(bookId, new GeoLocation(lat, log));
-
-                        ref = FirebaseDatabase.getInstance().getReference("books");
-                        ref.child(bookId).setValue(new Book(bookId,name,imageString,desc));
-
-                        dismiss();
                     }
                 }
             });
@@ -207,7 +158,62 @@ public class BookDialog extends DialogFragment {
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CAMERA_PIC_REQUEST) {
-            imageShared = true;
+            String name = "";
+            String desc = "";
+
+            mBookName.setHintTextColor(Color.GRAY);
+            mBookDesc.setHintTextColor(Color.GRAY);
+            name = mBookName.getText().toString();
+            desc = mBookDesc.getText().toString();
+            String bookId = generateRandomId();
+
+            try {
+                image = MediaStore.Images.Media.getBitmap(
+                        getActivity().getContentResolver(), Uri.fromFile(mOutput));
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+
+            double lat = loc.latitude;
+            double log = loc.longitude;
+
+            new Thread(new ShareOnFacebook(name,desc,bookId,lat,log)).start();
+            dismiss();
         }
     }
+
+    public class ShareOnFacebook implements Runnable{
+        String name, desc, bookId;
+        double lat, log;
+
+        ShareOnFacebook(String name, String desc, String bookId, double lat, double log){
+            this.name=name;
+            this.desc = desc;
+            this.bookId = bookId;
+            this.lat = lat;
+            this.log = log;
+        }
+
+        @Override
+        public void run() {
+            SharePhotoContent content = new SharePhotoContent.Builder()
+                    .addPhoto(new SharePhoto.Builder()
+                            .setBitmap(image)
+                            .build())
+                    .setShareHashtag(new ShareHashtag.Builder()
+                            .setHashtag("#CaçadoresDeLivros#DoeUmLivro")
+                            .build())
+                    .build();
+            if(shareDialog != null) shareDialog.show(content);
+
+            DatabaseReference ref = FirebaseDatabase.getInstance().getReference("location");
+            GeoFire geoFire = new GeoFire(ref);
+            geoFire.setLocation(bookId, new GeoLocation(lat, log));
+
+            ref = FirebaseDatabase.getInstance().getReference("books");
+            ref.child(bookId).setValue(new Book(bookId,name,getStringFromBitmap(image),desc));
+        }
+    }
+
 }

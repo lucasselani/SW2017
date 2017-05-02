@@ -1,5 +1,7 @@
 package br.sw.cacadoresdelivrosbr.view.fragments;
 
+import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
