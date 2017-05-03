@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="15dp"
+    android:screenOrientation="portrait">
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nome do livro"
+        android:textColorHint="@android:color/darker_gray"
+        android:id="@+id/booknameET"
+        android:inputType="text"
+        android:maxLength="32"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Descrição do livro"
+        android:textColorHint="@android:color/darker_gray"
+        android:id="@+id/bookdescET"
+        android:inputType="text"
+        android:maxLength="256"
+        android:maxLines="10"/>
+
+
+</LinearLayout>

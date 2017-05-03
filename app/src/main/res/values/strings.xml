@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Caçadores de Livros</string>
+    <string name="facebook_app_id"> 100233520549753 </string>
+    <string name="google_maps_key"> AIzaSyBP8ChZGeAF0il2_8JZ_o08sV-QZX2ICks </string>
 </resources>

@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "417305412799",
+    "firebase_url": "https://cacadoresdelivro-1493435434390.firebaseio.com",
+    "project_id": "cacadoresdelivro-1493435434390",
+    "storage_bucket": "cacadoresdelivro-1493435434390.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:417305412799:android:8b5b530f8b0ebd4c",
+        "android_client_info": {
+          "package_name": "br.sw.cacadoresdelivrosbr"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "417305412799-rcfpnn5n4mtnnkekjeellno1ftd94264.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "br.sw.cacadoresdelivrosbr",
+            "certificate_hash": "e04a077bbcca995b833cbbde399a06bd235a39ce"
+          }
+        },
+        {
+          "client_id": "417305412799-411quq0dtbb27qg77hl46kp0r5l5u2dp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKB0eSA6xHMMQm8wsUnTNJxpTMtpU8d80"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "417305412799-411quq0dtbb27qg77hl46kp0r5l5u2dp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

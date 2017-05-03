@@ -1,4 +1,4 @@
-package br.sw.cacadoresdelivros;
+package br.sw.cacadoresdelivrosbr;
 
 import org.junit.Test;
 
