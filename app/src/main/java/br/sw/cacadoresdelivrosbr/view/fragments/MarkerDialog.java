@@ -1,6 +1,7 @@
 package br.sw.cacadoresdelivrosbr.view.fragments;
 
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -28,8 +29,11 @@ import com.facebook.share.widget.ShareDialog;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 
 import java.io.File;
@@ -56,6 +60,8 @@ public class MarkerDialog extends DialogFragment {
     private static final int CAMERA_PIC_REQUEST = 1;
     private String markerId;
     private ShareDialog shareDialog;
+    private Thread t;
+    private ArrayList<Book> books;
 
     /* The activity that creates an instance of this dialog fragment must
      * implement this interface in order to receive event callbacks.
@@ -80,15 +86,7 @@ public class MarkerDialog extends DialogFragment {
         mBookDescription = (TextView) modifyView.findViewById(R.id.bookdesc);
 
         markerId = ((MainActivity)getActivity()).markerToDelete.getTitle();
-        ArrayList<Book> books = ((MainActivity)getActivity()).bookList;
-        for(Book b : books){
-            if(b.bookId.equals(markerId)){
-                mBookName.setText(b.bookName);
-                mBookPicture.setImageBitmap(getBitmapFromString(b.bookImage));
-                mBookDescription.setText(b.bookDesc);
-                break;
-            }
-        }
+        books = ((MainActivity)getActivity()).bookList;
 
         builder.setPositiveButton("PEGAR!", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) { }
@@ -110,6 +108,30 @@ public class MarkerDialog extends DialogFragment {
         super.onStart();
         AlertDialog alertDialog = (AlertDialog) getDialog();
         if(alertDialog != null){
+            for(Book b : books){
+                if(b.bookId.equals(markerId)){
+                    final ProgressDialog progressDialog = new ProgressDialog(getActivity());
+                    progressDialog.show();
+                    progressDialog.setMessage("Carregando informações");
+                    progressDialog.setCancelable(false);
+
+                    StorageReference imagesRef = FirebaseStorage.getInstance().getReference().child("images/"+markerId+".jpg");
+                    final long TWO_MEGABYTE = 2048 * 1024;
+                    final Book staticBook = b;
+                    imagesRef.getBytes(TWO_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                        @Override
+                        public void onSuccess(byte[] bytes) {
+                            Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                            mBookPicture.setImageBitmap(bitmap);
+                            mBookName.setText(staticBook.bookName);
+                            mBookDescription.setText(staticBook.bookDesc);
+                            progressDialog.dismiss();
+                        }
+                    });
+                    break;
+                }
+            }
+
             shareDialog = new ShareDialog(getActivity());
             Button positiveButton = alertDialog.getButton(Dialog.BUTTON_POSITIVE);
             positiveButton.setOnClickListener(new View.OnClickListener() {
@@ -125,6 +147,7 @@ public class MarkerDialog extends DialogFragment {
                     loc2.setLatitude(markerPos.latitude);
                     loc2.setLongitude(markerPos.longitude);
                     float distanceInMeters = loc1.distanceTo(loc2);
+
                     if(distanceInMeters < 100){
                         Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
                         File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
@@ -152,15 +175,23 @@ public class MarkerDialog extends DialogFragment {
             }
             wantToCloseDialog = true;
 
-            new Thread(new ShareOnFacebook()).start();
+            t = new Thread(new ShareOnFacebook());
+            t.start();
+
+            if(((MainActivity)getActivity()).markerToDelete != null)
+                ((MainActivity)getActivity()).deleteMarker();
 
             dismiss();
         }
     }
 
-    public class ShareOnFacebook implements Runnable{
+    private class ShareOnFacebook implements Runnable{
         @Override
         public void run() {
+            if(getActivity() == null){
+                t.interrupt();
+                return;
+            }
             SharePhotoContent content = new SharePhotoContent.Builder()
                     .addPhoto(new SharePhoto.Builder()
                             .setBitmap(image)
@@ -176,7 +207,8 @@ public class MarkerDialog extends DialogFragment {
             refBooks.child(markerId).removeValue();
             DatabaseReference refLocations = FirebaseDatabase.getInstance().getReference("location");
             refLocations.child(markerId).removeValue();
-            ((MainActivity)getActivity()).deleteMarker();
+            StorageReference imagesRef = FirebaseStorage.getInstance().getReference().child("images/"+markerId+".jpg");
+            imagesRef.delete();
         }
     }
 
@@ -188,4 +220,9 @@ public class MarkerDialog extends DialogFragment {
         return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
     }
 
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        if(t != null) t.interrupt();
+    }
 }

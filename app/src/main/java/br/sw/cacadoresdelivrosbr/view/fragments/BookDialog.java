@@ -11,6 +11,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.util.Base64;
@@ -29,18 +30,30 @@ import com.facebook.share.widget.ShareButton;
 import com.facebook.share.widget.ShareDialog;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
+import com.firebase.geofire.core.GeoHash;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import br.sw.cacadoresdelivrosbr.R;
 import br.sw.cacadoresdelivrosbr.model.Book;
 import br.sw.cacadoresdelivrosbr.view.activities.MainActivity;
+
+import static android.app.Activity.RESULT_OK;
 
 /**
  * Created by lucasselani on 29/04/17.
@@ -53,6 +66,7 @@ public class BookDialog extends DialogFragment {
     private static final int CAMERA_PIC_REQUEST = 1337;
     private LatLng loc;
     private ShareDialog shareDialog;
+    private Thread t;
 
     /* The activity that creates an instance of this dialog fragment must
      * implement this interface in order to receive event callbacks.
@@ -72,8 +86,8 @@ public class BookDialog extends DialogFragment {
         final View modifyView = inflater.inflate(R.layout.book_layout, null);
         builder.setView(modifyView);
 
-        mBookDesc = (EditText) modifyView.findViewById(R.id.bookdesc);
-        mBookName = (EditText) modifyView.findViewById(R.id.bookname);
+        mBookDesc = (EditText) modifyView.findViewById(R.id.bookdescET);
+        mBookName = (EditText) modifyView.findViewById(R.id.booknameET);
 
         builder.setPositiveButton("COMPARTILHAR", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) { }
@@ -157,7 +171,7 @@ public class BookDialog extends DialogFragment {
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == CAMERA_PIC_REQUEST) {
+        if (requestCode == CAMERA_PIC_REQUEST && resultCode == RESULT_OK) {
             String name = "";
             String desc = "";
 
@@ -178,12 +192,13 @@ public class BookDialog extends DialogFragment {
             double lat = loc.latitude;
             double log = loc.longitude;
 
-            new Thread(new ShareOnFacebook(name,desc,bookId,lat,log)).start();
+            t = new Thread(new ShareOnFacebook(name,desc,bookId,lat,log));
+            t.start();
             dismiss();
         }
     }
 
-    public class ShareOnFacebook implements Runnable{
+    private class ShareOnFacebook implements Runnable{
         String name, desc, bookId;
         double lat, log;
 
@@ -197,6 +212,11 @@ public class BookDialog extends DialogFragment {
 
         @Override
         public void run() {
+            if(getActivity() == null){
+                t.interrupt();
+                return;
+            }
+
             SharePhotoContent content = new SharePhotoContent.Builder()
                     .addPhoto(new SharePhoto.Builder()
                             .setBitmap(image)
@@ -211,9 +231,32 @@ public class BookDialog extends DialogFragment {
             GeoFire geoFire = new GeoFire(ref);
             geoFire.setLocation(bookId, new GeoLocation(lat, log));
 
+            Book book = new Book(bookId,name,desc);
             ref = FirebaseDatabase.getInstance().getReference("books");
-            ref.child(bookId).setValue(new Book(bookId,name,getStringFromBitmap(image),desc));
+            ref.child(bookId).setValue(book);
+
+            Uri file = Uri.fromFile(mOutput);
+            StorageReference imagesRef = FirebaseStorage.getInstance().getReference().child("images/"+bookId+".jpg");
+            imagesRef.putFile(file)
+                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            // Get a URL to the uploaded content
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception exception) {
+                            // Handle unsuccessful uploads
+                            // ...
+                        }
+                    });
         }
     }
 
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        if(t != null) t.interrupt();
+    }
 }

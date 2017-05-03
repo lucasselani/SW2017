@@ -70,7 +70,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        ((MainActivity) getActivity()).askPermissions();
         try{
             googleMap.setMyLocationEnabled(true);
         } catch (SecurityException se){
@@ -89,8 +88,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             @Override
             public boolean onMarkerClick(Marker marker) {
                 Log.v("MapFragment", "OnMarkerClick");
+                if(marker.isInfoWindowShown()) marker.hideInfoWindow();
                 ((MainActivity)getActivity()).showMarkerDialog(marker);
-                return false;
+                return true;
+            }
+        });
+        googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                if(marker.isInfoWindowShown()) marker.hideInfoWindow();
             }
         });
         mGoogleMap = googleMap;

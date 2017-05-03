@@ -42,14 +42,14 @@ public class LoginActivity extends FragmentActivity {
     private CallbackManager mCallbackManager;
     private FirebaseAuth mAuth;
     private LoginButton loginButton;
-    ProgressDialog dialog;
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        setSplashScreen();
+
 
         mAuth = FirebaseAuth.getInstance();
         mCallbackManager = CallbackManager.Factory.create();
@@ -79,20 +79,7 @@ public class LoginActivity extends FragmentActivity {
         });
     }
 
-    public void setSplashScreen(){
-        dialog = new ProgressDialog(this);
-        dialog.show();
-        dialog.setContentView(R.layout.splashscreen);
-        dialog.setCancelable(false);
-        dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                dialog.dismiss();
-            }
-        },5000);
 
-    }
 
     private void printHashKey(){
         try {

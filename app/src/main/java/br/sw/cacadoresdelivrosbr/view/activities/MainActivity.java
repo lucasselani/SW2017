@@ -37,6 +37,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -66,21 +67,44 @@ public class MainActivity extends FragmentActivity implements
     public LatLng mCurrlatLng = null;
     public Marker markerToDelete;
     MapFragment mMapFragment;
+    ProgressDialog dialog;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_maps);
-
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        setSplashScreen();
         askPermissions();
-        FirebaseApp.initializeApp(this);
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("location");
         bookList = new ArrayList<>();
-        refBooks = FirebaseDatabase.getInstance().getReference("books");
-        refBooks.addValueEventListener(new ValueEventListener() {
+        markerList = new ArrayList<>();
+        mMapFragment = MapFragment.newInstance();
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragmentContainer, mMapFragment)
+                .commit();
+    }
+
+    public void setSplashScreen(){
+        dialog = new ProgressDialog(this);
+        dialog.show();
+        dialog.setContentView(R.layout.splashscreen);
+        dialog.setCancelable(false);
+        dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                dialog.dismiss();
+            }
+        },5000);
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        FirebaseApp.initializeApp(this);
+
+/*        refBooks.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for(DataSnapshot postSnapshot : dataSnapshot.getChildren()){
@@ -93,19 +117,9 @@ public class MainActivity extends FragmentActivity implements
             public void onCancelled(DatabaseError databaseError) {
                 Log.v("Database Error", databaseError.toString());
             }
-        });
-        geoFire = new GeoFire(ref);
-        markerList = new ArrayList<>();
-        mMapFragment = MapFragment.newInstance();
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragmentContainer, mMapFragment)
-                .commit();
+        });*/
 
     }
-
-
-
-
 
     public void showBookDialog(){
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -117,7 +131,6 @@ public class MainActivity extends FragmentActivity implements
         FragmentManager fragmentManager = getSupportFragmentManager();
         DialogFragment markerDialog = new MarkerDialog();
         markerToDelete = marker;
-        markerToDelete.hideInfoWindow();
         markerDialog.show(fragmentManager, "Main");
     }
 
@@ -125,6 +138,52 @@ public class MainActivity extends FragmentActivity implements
         Log.v("Main", "MapReady");
         buildGoogleApiClient();
         mGoogleApiClient.connect();
+        getFirabaseDatabase();
+    }
+
+    protected synchronized void getFirabaseDatabase(){
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("location");
+        geoFire = new GeoFire(ref);
+        refBooks = FirebaseDatabase.getInstance().getReference("books");
+        refBooks.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                bookList.add(dataSnapshot.getValue(Book.class));
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                Book book = dataSnapshot.getValue(Book.class);
+                for(int i=0; i<bookList.size(); i++){
+                    if(bookList.get(i).bookId.equals(book.bookId)){
+                        bookList.add(i, book);
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                Book book = dataSnapshot.getValue(Book.class);
+                for(int i=0; i<bookList.size(); i++){
+                    if(bookList.get(i).bookId.equals(book.bookId)){
+                        bookList.remove(i);
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -207,6 +266,7 @@ public class MainActivity extends FragmentActivity implements
                 markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
                 markerOptions.title(key);
                 mMapFragment.markBook(markerOptions);
+                if(!markerList.isEmpty()) markerList.get(markerList.size()-1).hideInfoWindow();
             }
         }
 
