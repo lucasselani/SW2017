@@ -16,9 +16,7 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.view.View;
 import android.view.WindowManager;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.facebook.login.LoginManager;
@@ -42,7 +40,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
@@ -84,6 +81,12 @@ public class MainActivity extends FragmentActivity implements
                 .commit();
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        FirebaseApp.initializeApp(this);
+    }
+
     public void setSplashScreen(){
         dialog = new ProgressDialog(this);
         dialog.show();
@@ -96,29 +99,6 @@ public class MainActivity extends FragmentActivity implements
                 dialog.dismiss();
             }
         },5000);
-
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        FirebaseApp.initializeApp(this);
-
-/*        refBooks.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for(DataSnapshot postSnapshot : dataSnapshot.getChildren()){
-                    Book book = postSnapshot.getValue(Book.class);
-                    if(book.bookId != null) bookList.add(postSnapshot.getValue(Book.class));
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.v("Database Error", databaseError.toString());
-            }
-        });*/
-
     }
 
     public void showBookDialog(){
@@ -132,6 +112,13 @@ public class MainActivity extends FragmentActivity implements
         DialogFragment markerDialog = new MarkerDialog();
         markerToDelete = marker;
         markerDialog.show(fragmentManager, "Main");
+    }
+
+    public void deleteMarker(){
+        if(markerToDelete != null){
+            markerToDelete.remove();
+            markerList.remove(markerToDelete);
+        }
     }
 
     public void mapReady(){
@@ -195,16 +182,6 @@ public class MainActivity extends FragmentActivity implements
                 .build();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    public void onConnected(Bundle bundle) {
-        startLocationUpdates();
-    }
-
     private void startLocationUpdates() {
         Log.v("locationUpdates", "Gettins Last Location");
         try{
@@ -228,6 +205,16 @@ public class MainActivity extends FragmentActivity implements
         } catch (SecurityException se){
             mCurrentLocation = null;
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        startLocationUpdates();
     }
 
     @Override
@@ -296,13 +283,6 @@ public class MainActivity extends FragmentActivity implements
 
         }
     };
-
-    public void deleteMarker(){
-        if(markerToDelete != null){
-            markerToDelete.remove();
-            markerList.remove(markerToDelete);
-        }
-    }
 
     public void askPermissions() {
         Log.v("Main", "AskingPermissions");

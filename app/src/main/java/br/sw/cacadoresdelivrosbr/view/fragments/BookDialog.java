@@ -1,20 +1,17 @@
 package br.sw.cacadoresdelivrosbr.view.fragments;
 
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
-import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -23,30 +20,23 @@ import android.widget.Toast;
 
 
 import com.facebook.share.model.ShareHashtag;
-import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
-import com.facebook.share.widget.ShareButton;
 import com.facebook.share.widget.ShareDialog;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
-import com.firebase.geofire.core.GeoHash;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import br.sw.cacadoresdelivrosbr.R;
@@ -61,12 +51,13 @@ import static android.app.Activity.RESULT_OK;
 
 public class BookDialog extends DialogFragment {
     private EditText mBookName, mBookDesc;
-    private Bitmap image;
+    private boolean moreImages = true;
     private File mOutput=null;
     private static final int CAMERA_PIC_REQUEST = 1337;
     private LatLng loc;
     private ShareDialog shareDialog;
     private Thread t;
+    private ArrayList<Bitmap> images;
 
     /* The activity that creates an instance of this dialog fragment must
      * implement this interface in order to receive event callbacks.
@@ -100,6 +91,7 @@ public class BookDialog extends DialogFragment {
         });
         builder.setTitle("Doe um livro");
 
+        images = new ArrayList<>();
         // Create the AlertDialog object and return it
         return builder.create();
     }
@@ -136,12 +128,7 @@ public class BookDialog extends DialogFragment {
                     }
 
                     if (wantToCloseDialog) {
-                        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-                        File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-                        mOutput = new File(dir, "temp_sharing.jpeg");
-                        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(mOutput));
-                        startActivityForResult(cameraIntent, CAMERA_PIC_REQUEST);
-
+                        TakePhoto();
                     }
                 }
             });
@@ -155,47 +142,64 @@ public class BookDialog extends DialogFragment {
         return "book-"+timestamp+uuid;
     }
 
-    private String getStringFromBitmap(Bitmap bitmapPicture) {
-         /*
-         * This functions converts Bitmap picture to a string which can be
-         * JSONified.
-         * */
-        final int COMPRESSION_QUALITY = 100;
-        String encodedImage;
-        ByteArrayOutputStream byteArrayBitmapStream = new ByteArrayOutputStream();
-        bitmapPicture.compress(Bitmap.CompressFormat.PNG, COMPRESSION_QUALITY,
-                byteArrayBitmapStream);
-        byte[] b = byteArrayBitmapStream.toByteArray();
-        encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
-        return encodedImage;
+    private void TakePhoto(){
+        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+        mOutput = new File(dir, "temp_sharing.jpeg");
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(mOutput));
+        startActivityForResult(cameraIntent, CAMERA_PIC_REQUEST);
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CAMERA_PIC_REQUEST && resultCode == RESULT_OK) {
-            String name = "";
-            String desc = "";
-
-            mBookName.setHintTextColor(Color.GRAY);
-            mBookDesc.setHintTextColor(Color.GRAY);
-            name = mBookName.getText().toString();
-            desc = mBookDesc.getText().toString();
-            String bookId = generateRandomId();
-
             try {
-                image = MediaStore.Images.Media.getBitmap(
-                        getActivity().getContentResolver(), Uri.fromFile(mOutput));
+                images.add(MediaStore.Images.Media.getBitmap(
+                        getActivity().getContentResolver(), Uri.fromFile(mOutput)));
             } catch (IOException e) {
                 e.printStackTrace();
                 return;
+            } finally {
+                AddMorePhotos();
             }
 
-            double lat = loc.latitude;
-            double log = loc.longitude;
-
-            t = new Thread(new ShareOnFacebook(name,desc,bookId,lat,log));
-            t.start();
-            dismiss();
+            if(!moreImages) dismiss();
         }
+    }
+
+
+    public void AddMorePhotos(){
+        new AlertDialog.Builder(getActivity())
+                .setTitle("Fotos")
+                .setMessage("Deseja enviar mais fotos?")
+                .setPositiveButton("Sim", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        moreImages = true;
+                        TakePhoto();
+                    }
+                })
+                .setNegativeButton("Não", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        moreImages = false;
+                        mBookName.setHintTextColor(Color.GRAY);
+                        mBookDesc.setHintTextColor(Color.GRAY);
+                        String name = mBookName.getText().toString();
+                        String desc = mBookDesc.getText().toString();
+                        String bookId = generateRandomId();
+                        double lat = loc.latitude;
+                        double log = loc.longitude;
+                        t = new Thread(new ShareOnFacebook(name,desc,bookId,lat,log));
+                        t.start();
+                        dismiss();
+                    }
+                }).create().show();
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        if(t != null) t.interrupt();
     }
 
     private class ShareOnFacebook implements Runnable{
@@ -217,14 +221,22 @@ public class BookDialog extends DialogFragment {
                 return;
             }
 
+            List<SharePhoto> fbImages = new ArrayList<>();
+
+            for(Bitmap image : images){
+                SharePhoto sharePhoto = new SharePhoto.Builder()
+                        .setBitmap(image)
+                        .build();
+                fbImages.add(sharePhoto);
+            }
+
             SharePhotoContent content = new SharePhotoContent.Builder()
-                    .addPhoto(new SharePhoto.Builder()
-                            .setBitmap(image)
-                            .build())
+                    .addPhotos(fbImages)
                     .setShareHashtag(new ShareHashtag.Builder()
-                            .setHashtag("#CaçadoresDeLivros#DoeUmLivro")
+                            .setHashtag("#CaçadoresDeLivros")
                             .build())
                     .build();
+
             if(shareDialog != null) shareDialog.show(content);
 
             DatabaseReference ref = FirebaseDatabase.getInstance().getReference("location");
@@ -252,11 +264,5 @@ public class BookDialog extends DialogFragment {
                         }
                     });
         }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        if(t != null) t.interrupt();
     }
 }

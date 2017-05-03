@@ -24,10 +24,7 @@ import android.widget.Toast;
 import com.facebook.share.model.ShareHashtag;
 import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
-import com.facebook.share.widget.ShareButton;
 import com.facebook.share.widget.ShareDialog;
-import com.firebase.geofire.GeoFire;
-import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
@@ -56,7 +53,6 @@ public class MarkerDialog extends DialogFragment {
     private ImageView mBookPicture;
     private Bitmap image;
     private File mOutput;
-    private boolean wantToCloseDialog;
     private static final int CAMERA_PIC_REQUEST = 1;
     private String markerId;
     private ShareDialog shareDialog;
@@ -137,8 +133,6 @@ public class MarkerDialog extends DialogFragment {
             positiveButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    wantToCloseDialog = false;
-
                     LatLng markerPos = ((MainActivity)getActivity()).markerToDelete.getPosition();
                     Location loc1 = new Location("");
                     loc1.setLatitude(((MainActivity)getActivity()).mCurrlatLng.latitude);
@@ -173,16 +167,19 @@ public class MarkerDialog extends DialogFragment {
                 e.printStackTrace();
                 return;
             }
-            wantToCloseDialog = true;
-
-            t = new Thread(new ShareOnFacebook());
-            t.start();
 
             if(((MainActivity)getActivity()).markerToDelete != null)
                 ((MainActivity)getActivity()).deleteMarker();
-
+            t = new Thread(new ShareOnFacebook());
+            t.start();
             dismiss();
         }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        if(t != null) t.interrupt();
     }
 
     private class ShareOnFacebook implements Runnable{
@@ -199,6 +196,7 @@ public class MarkerDialog extends DialogFragment {
                     .setShareHashtag(new ShareHashtag.Builder()
                             .setHashtag("#CaçadoresDeLivros")
                             .build())
+                    //.setContentUrl(Uri.parse("https://www.facebook.com/groups/1455377604522968/"))
                     .build();
 
             shareDialog.show(content);
@@ -209,20 +207,10 @@ public class MarkerDialog extends DialogFragment {
             refLocations.child(markerId).removeValue();
             StorageReference imagesRef = FirebaseStorage.getInstance().getReference().child("images/"+markerId+".jpg");
             imagesRef.delete();
+
+            if(getActivity() != null)
+                if(((MainActivity)getActivity()).markerToDelete != null)
+                    ((MainActivity)getActivity()).deleteMarker();
         }
-    }
-
-    private Bitmap getBitmapFromString(String jsonString) {
-        /*
-        * This Function converts the String back to Bitmap
-        * */
-        byte[] decodedString = Base64.decode(jsonString, Base64.DEFAULT);
-        return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        if(t != null) t.interrupt();
     }
 }

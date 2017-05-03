@@ -21,7 +21,8 @@
         android:textColorHint="@android:color/darker_gray"
         android:id="@+id/bookdescET"
         android:inputType="text"
-        android:maxLength="256"/>
+        android:maxLength="256"
+        android:maxLines="10"/>
 
 
 </LinearLayout>

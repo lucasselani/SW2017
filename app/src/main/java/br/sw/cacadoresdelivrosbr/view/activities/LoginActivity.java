@@ -1,13 +1,10 @@
 package br.sw.cacadoresdelivrosbr.view.activities;
 
 import android.Manifest;
-import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -15,7 +12,6 @@ import android.support.v4.content.ContextCompat;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
@@ -43,19 +39,13 @@ public class LoginActivity extends FragmentActivity {
     private FirebaseAuth mAuth;
     private LoginButton loginButton;
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
-
+        askPermissions();
         mAuth = FirebaseAuth.getInstance();
         mCallbackManager = CallbackManager.Factory.create();
-
-        askPermissions();
-        printHashKey();
 
         loginButton = (LoginButton) findViewById(R.id.button_facebook_login);
         loginButton.setReadPermissions("email", "public_profile");
@@ -78,8 +68,6 @@ public class LoginActivity extends FragmentActivity {
             }
         });
     }
-
-
 
     private void printHashKey(){
         try {
@@ -178,7 +166,9 @@ public class LoginActivity extends FragmentActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        //printHashKey();
         FirebaseUser currentUser = mAuth.getCurrentUser();
+
         if(currentUser != null){
             Log.v("USERID", "Current User: "+currentUser.getUid());
             updateUI(currentUser);
@@ -188,8 +178,6 @@ public class LoginActivity extends FragmentActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-        // Pass the activity result back to the Facebook SDK
         mCallbackManager.onActivityResult(requestCode, resultCode, data);
     }
 }

@@ -1,7 +1,5 @@
 package br.sw.cacadoresdelivrosbr.view.fragments;
 
-import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -20,6 +18,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.lapism.searchview.SearchView;
 
 import br.sw.cacadoresdelivrosbr.R;
 import br.sw.cacadoresdelivrosbr.view.activities.MainActivity;
@@ -31,8 +30,8 @@ import br.sw.cacadoresdelivrosbr.view.activities.MainActivity;
 public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private static final String TAG = MapFragment.class.getSimpleName();
-    private MapView mMapView;
     private GoogleMap mGoogleMap;
+    private SearchView searchView;
 
     public static MapFragment newInstance() {
         return new MapFragment();
@@ -47,7 +46,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.map_fragment, container, false);
-        mMapView = (MapView) rootView.findViewById(R.id.map);
+        MapView mMapView = (MapView) rootView.findViewById(R.id.map);
         mMapView.onCreate(savedInstanceState);
         mMapView.onResume(); // needed to get the map to display immediately
         try {
@@ -64,6 +63,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 ((MainActivity) getActivity()).showBookDialog();
             }
         });
+
+        //searchView = (SearchView) rootView.findViewById(R.id.searchView);
+        //searchView.setVersion(SearchView.VERSION_TOOLBAR);
 
         return rootView;
     }
