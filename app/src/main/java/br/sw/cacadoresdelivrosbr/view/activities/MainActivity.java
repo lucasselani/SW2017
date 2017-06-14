@@ -53,6 +53,7 @@ public class MainActivity extends FragmentActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private final String DEBUG_TAG = getClass().getSimpleName();
+    private final int SCAN_RANGE = 500;
     LocationRequest mLocationRequest = null;
     GoogleApiClient mGoogleApiClient = null;
     Location mCurrentLocation = null;
@@ -135,14 +136,25 @@ public class MainActivity extends FragmentActivity implements
         refBooks.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                bookList.add(dataSnapshot.getValue(Book.class));
+                //Book book = dataSnapshot.getValue(Book.class);
+                ArrayList<String> contents = new ArrayList<String>();
+                for(DataSnapshot ds : dataSnapshot.getChildren()){
+                    contents.add(ds.getValue(String.class));
+                }
+                Book book = new Book(contents.get(1), contents.get(2), contents.get(0));
+                bookList.add(book);
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                Book book = dataSnapshot.getValue(Book.class);
+                ArrayList<String> contents = new ArrayList<String>();
+                for(DataSnapshot ds : dataSnapshot.getChildren()){
+                    contents.add(ds.getValue(String.class));
+                }
+                Book book = new Book(contents.get(1), contents.get(2), contents.get(0));
+
                 for(int i=0; i<bookList.size(); i++){
-                    if(bookList.get(i).bookId.equals(book.bookId)){
+                    if(bookList.get(i).getBookId().equals(book.getBookId())){
                         bookList.add(i, book);
                         break;
                     }
@@ -151,9 +163,14 @@ public class MainActivity extends FragmentActivity implements
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Book book = dataSnapshot.getValue(Book.class);
+                ArrayList<String> contents = new ArrayList<String>();
+                for(DataSnapshot ds : dataSnapshot.getChildren()){
+                    contents.add(ds.getValue(String.class));
+                }
+                Book book = new Book(contents.get(1), contents.get(2), contents.get(0));
+
                 for(int i=0; i<bookList.size(); i++){
-                    if(bookList.get(i).bookId.equals(book.bookId)){
+                    if(bookList.get(i).getBookId().equals(book.getBookId())){
                         bookList.remove(i);
                         break;
                     }
@@ -233,7 +250,7 @@ public class MainActivity extends FragmentActivity implements
         mCurrlatLng = new LatLng(location.getLatitude(), location.getLongitude());
         GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(location.getLatitude(),
                 location.getLongitude()),
-                10);
+                SCAN_RANGE);
         geoQuery.addGeoQueryEventListener(geoQueryEventListener);
         Log.v(DEBUG_TAG, mCurrlatLng.toString());
     }

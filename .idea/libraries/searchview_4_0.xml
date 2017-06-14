@@ -1,8 +1,8 @@
 <component name="libraryTable">
   <library name="searchview-4.0">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.android/build-cache/5fd490183dfc3852535aab3b4d26c0b426246db0/output/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.android/build-cache/5fd490183dfc3852535aab3b4d26c0b426246db0/output/res" />
+      <root url="file://$USER_HOME$/.android/build-cache/bc1241e23eda7ab668b60b3b7e39c5ee7ee883b4/output/res" />
+      <root url="jar://$USER_HOME$/.android/build-cache/bc1241e23eda7ab668b60b3b7e39c5ee7ee883b4/output/jars/classes.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

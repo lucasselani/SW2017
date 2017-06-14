@@ -5,17 +5,27 @@ package br.sw.cacadoresdelivrosbr.model;
  */
 
 public class Book {
-    public String bookId;
-    public String bookName;
-    public String bookDesc;
+    private String bookId;
+    private String bookName;
+    private String bookDesc;
 
-    public Book(){
-
-    }
+    private Book(){ }
 
     public Book(String bookId, String bookName, String bookDesc) {
         this.bookId = bookId;
         this.bookName = bookName;
         this.bookDesc = bookDesc;
+    }
+
+    public String getBookId() {
+        return bookId;
+    }
+
+    public String getBookName() {
+        return bookName;
+    }
+
+    public String getBookDesc() {
+        return bookDesc;
     }
 }

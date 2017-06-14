@@ -1,8 +1,8 @@
 <component name="libraryTable">
   <library name="firebase-core-10.2.4">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.android/build-cache/a40cbeeeab51216208ee53eab2cc95c6a6ffac97/output/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.android/build-cache/a40cbeeeab51216208ee53eab2cc95c6a6ffac97/output/res" />
+      <root url="jar://$USER_HOME$/.android/build-cache/810f785baf3500c210567aa358db11a522e3b1e2/output/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.android/build-cache/810f785baf3500c210567aa358db11a522e3b1e2/output/res" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

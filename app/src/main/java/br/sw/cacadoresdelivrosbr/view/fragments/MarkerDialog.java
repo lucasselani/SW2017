@@ -26,6 +26,7 @@ import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
 import com.facebook.share.widget.ShareDialog;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -49,10 +50,12 @@ import static android.app.Activity.RESULT_OK;
  */
 
 public class MarkerDialog extends DialogFragment {
+    private static final long DOWNLOAD_LIMIT = 8192 * 1024; //8MB
     private TextView mBookName, mBookDescription;
     private ImageView mBookPicture;
     private Bitmap image;
     private File mOutput;
+    private Marker marker;
     private static final int CAMERA_PIC_REQUEST = 1;
     private String markerId;
     private ShareDialog shareDialog;
@@ -81,7 +84,8 @@ public class MarkerDialog extends DialogFragment {
         mBookPicture = (ImageView) modifyView.findViewById(R.id.bookimage);
         mBookDescription = (TextView) modifyView.findViewById(R.id.bookdesc);
 
-        markerId = ((MainActivity)getActivity()).markerToDelete.getTitle();
+        marker = ((MainActivity)getActivity()).markerToDelete;
+        markerId = marker.getTitle();
         books = ((MainActivity)getActivity()).bookList;
 
         builder.setPositiveButton("PEGAR!", new DialogInterface.OnClickListener() {
@@ -105,22 +109,22 @@ public class MarkerDialog extends DialogFragment {
         AlertDialog alertDialog = (AlertDialog) getDialog();
         if(alertDialog != null){
             for(Book b : books){
-                if(b.bookId.equals(markerId)){
+                if(b.getBookId().equals(markerId)){
                     final ProgressDialog progressDialog = new ProgressDialog(getActivity());
                     progressDialog.show();
                     progressDialog.setMessage("Carregando informações");
                     progressDialog.setCancelable(false);
 
                     StorageReference imagesRef = FirebaseStorage.getInstance().getReference().child("images/"+markerId+".jpg");
-                    final long TWO_MEGABYTE = 2048 * 1024;
+
                     final Book staticBook = b;
-                    imagesRef.getBytes(TWO_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                    imagesRef.getBytes(DOWNLOAD_LIMIT).addOnSuccessListener(new OnSuccessListener<byte[]>() {
                         @Override
                         public void onSuccess(byte[] bytes) {
                             Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                            mBookPicture.setImageBitmap(bitmap);
-                            mBookName.setText(staticBook.bookName);
-                            mBookDescription.setText(staticBook.bookDesc);
+                            mBookPicture.setImageBitmap(Bitmap.createScaledBitmap(bitmap,300,300,false));
+                            mBookName.setText(staticBook.getBookName());
+                            mBookDescription.setText(staticBook.getBookDesc());
                             progressDialog.dismiss();
                         }
                     });
@@ -208,6 +212,7 @@ public class MarkerDialog extends DialogFragment {
             StorageReference imagesRef = FirebaseStorage.getInstance().getReference().child("images/"+markerId+".jpg");
             imagesRef.delete();
 
+            marker.remove();
             if(getActivity() != null)
                 if(((MainActivity)getActivity()).markerToDelete != null)
                     ((MainActivity)getActivity()).deleteMarker();
