@@ -244,8 +244,8 @@ public class BookDialog extends DialogFragment {
             geoFire.setLocation(bookId, new GeoLocation(lat, log));
 
             Book book = new Book(bookId,name,desc);
-            ref = FirebaseDatabase.getInstance().getReference("books");
-            ref.child(bookId).setValue(book);
+            DatabaseReference bookRef = FirebaseDatabase.getInstance().getReference("books");
+            bookRef.child(bookId).setValue(book);
 
             Uri file = Uri.fromFile(mOutput);
             StorageReference imagesRef = FirebaseStorage.getInstance().getReference().child("images/"+bookId+".jpg");

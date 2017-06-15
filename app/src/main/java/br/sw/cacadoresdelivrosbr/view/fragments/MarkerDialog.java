@@ -85,7 +85,7 @@ public class MarkerDialog extends DialogFragment {
         mBookDescription = (TextView) modifyView.findViewById(R.id.bookdesc);
 
         marker = ((MainActivity)getActivity()).markerToDelete;
-        markerId = marker.getTitle();
+        if(marker != null) markerId = marker.getTitle();
         books = ((MainActivity)getActivity()).bookList;
 
         builder.setPositiveButton("PEGAR!", new DialogInterface.OnClickListener() {
@@ -212,7 +212,6 @@ public class MarkerDialog extends DialogFragment {
             StorageReference imagesRef = FirebaseStorage.getInstance().getReference().child("images/"+markerId+".jpg");
             imagesRef.delete();
 
-            marker.remove();
             if(getActivity() != null)
                 if(((MainActivity)getActivity()).markerToDelete != null)
                     ((MainActivity)getActivity()).deleteMarker();

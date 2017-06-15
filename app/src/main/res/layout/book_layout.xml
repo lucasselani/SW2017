@@ -20,9 +20,12 @@
         android:hint="Descrição do livro"
         android:textColorHint="@android:color/darker_gray"
         android:id="@+id/bookdescET"
-        android:inputType="text"
-        android:maxLength="256"
-        android:maxLines="10"/>
+        android:maxLines="10"
+        android:scrollbars="none"
+        android:inputType="textMultiLine|textCapSentences"
+        android:minLines="1"
+        android:maxLength="1000"
+        android:ellipsize="end"/>
 
 
 </LinearLayout>

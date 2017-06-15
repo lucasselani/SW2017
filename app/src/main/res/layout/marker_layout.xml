@@ -59,6 +59,9 @@
         android:layout_toEndOf="@+id/bookimage"
         android:layout_below="@+id/descTV"
         android:maxLines="10"
+        android:scrollbars="none"
+        android:minLines="1"
+        android:maxLength="1000"
         android:ellipsize="end"/>
 
 </RelativeLayout>

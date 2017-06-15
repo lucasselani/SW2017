@@ -99,7 +99,7 @@ public class MainActivity extends FragmentActivity implements
             public void run() {
                 dialog.dismiss();
             }
-        },5000);
+        },8000);
     }
 
     public void showBookDialog(){
