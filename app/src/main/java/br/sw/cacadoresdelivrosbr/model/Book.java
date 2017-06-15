@@ -8,9 +8,9 @@ import android.support.annotation.Keep;
 
 @Keep
 public class Book {
-    private String bookId;
-    private String bookName;
-    private String bookDesc;
+    public String bookId;
+    public String bookName;
+    public String bookDesc;
 
     public Book(){ }
 
